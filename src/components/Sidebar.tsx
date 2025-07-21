@@ -1,9 +1,10 @@
-import { Home, CreditCard, Users, Settings } from "lucide-react";
-import { cn } from "@/lib/utils"; // Shadcn utility
-import { useLocation, Link } from "react-router-dom";
+import { Home, CreditCard, Users, Settings, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
     { label: "Dashboard", icon: Home, path: "/app/dashboard" },
@@ -11,6 +12,11 @@ export default function Sidebar() {
     { label: "Funcionários", icon: Users, path: "/app/employees" },
     { label: "Logs", icon: Settings, path: "/app/logs" },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/sign-in");
+  };
 
   return (
     <aside className="w-64 h-screen bg-white p-4 flex flex-col">
@@ -39,6 +45,14 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      <button
+        onClick={handleLogout}
+        className="mt-auto flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-100"
+      >
+        <LogOut size={18} className="text-gray-600 group-hover:text-blue-600" />
+        Sair
+      </button>
     </aside>
   );
 }

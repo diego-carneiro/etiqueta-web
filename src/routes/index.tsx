@@ -1,10 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
+
+import RedirectPage from "@/pages/RedirectPage";
 import SignInPage from "@/pages/SignInPage";
 import SignUpPage from "@/pages/SignUpPage";
 import RecoverPasswordPage from "@/pages/RecoverPasswordPage";
 import RecoverCodePage from "@/pages/RecoverCodePage";
 import RedefinePasswordPage from "@/pages/RedefinePasswordPage";
+
+import PrivateRoute from "@/pages/PrivateRoute";
 import MainLayout from "@/pages/MainLayout";
+
 import DashboardPage from "@/pages/DashboardPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import EmployeesPage from "@/pages/EmployeesPage";
@@ -15,7 +20,7 @@ import AuditLogs from "@/pages/AuditLogs";
 export const Router = createBrowserRouter([
   {
     path: "/",
-    element: <SignInPage />,
+    element: <RedirectPage />,
   },
   {
     path: "/sign-in",
@@ -39,31 +44,37 @@ export const Router = createBrowserRouter([
   },
   {
     path: "/app",
-    element: <MainLayout />,
+    element: <PrivateRoute />,
     children: [
       {
-        path: "dashboard",
-        element: <DashboardPage />,
-      },
-      {
-        path: "payments",
-        element: <PaymentsPage />,
-      },
-      {
-        path: "employees",
-        element: <EmployeesPage />,
-      },
-      {
-        path: "employee-register",
-        element: <EmployeeRegisterPage />,
-      },
-      {
-        path: "logs",
-        element: <LogsPage />,
-      },
-      {
-        path: "audit-log",
-        element: <AuditLogs />,
+        path: "",
+        element: <MainLayout />,
+        children: [
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+          {
+            path: "payments",
+            element: <PaymentsPage />,
+          },
+          {
+            path: "employees",
+            element: <EmployeesPage />,
+          },
+          {
+            path: "employee-register",
+            element: <EmployeeRegisterPage />,
+          },
+          {
+            path: "logs",
+            element: <LogsPage />,
+          },
+          {
+            path: "audit-log",
+            element: <AuditLogs />,
+          },
+        ],
       },
     ],
   },

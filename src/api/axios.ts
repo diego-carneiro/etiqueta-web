@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  // baseURL: "https://api.com/api",
-  // headers: {
-  //   "Content-Type": "application/json",
-  // },
+  baseURL: "https://etiqueta-back-production.up.railway.app",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 export default api;

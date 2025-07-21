@@ -18,24 +18,11 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-
-const funcionarios = [
-  {
-    id: "12345",
-    nome: "João Silva",
-    email: "joao@example.com",
-    loja: "Loja A",
-  },
-  {
-    id: "67890",
-    nome: "Maria Santos",
-    email: "maria@example.com",
-    loja: "Loja B",
-  },
-];
+import { useEmployees } from "@/api/hooks/useEmployee";
 
 export default function EmployeesPage() {
   const navigate = useNavigate();
+  const { data, isLoading } = useEmployees();
 
   return (
     <div className="p-8 space-y-8 bg-gray-100 min-h-screen">
@@ -44,7 +31,7 @@ export default function EmployeesPage() {
           <CardContent className="flex items-center gap-3 p-4">
             <span className="text-2xl">🟢</span>
             <div>
-              <p className="text-lg font-bold">53</p>
+              <p className="text-lg font-bold">{data?.data.length ?? 0}</p>
               <p className="text-sm text-gray-500">Funcionários</p>
             </div>
           </CardContent>
@@ -91,24 +78,32 @@ export default function EmployeesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {funcionarios.map((f, index) => (
-              <TableRow key={index}>
-                <TableCell>{f.id}</TableCell>
-                <TableCell>{f.nome}</TableCell>
-                <TableCell>{f.email}</TableCell>
-                <TableCell>{f.loja}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm">
-                    Editar
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
+                  Carregando funcionários...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data?.data.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell>{employee.id}</TableCell>
+                  <TableCell>{employee.name}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
+                  <TableCell>{employee.serviceCenterId}</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm">
+                      Editar
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon">
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
