@@ -77,7 +77,7 @@ export default function DashboardPage() {
     return <div className="p-8 text-red-500">Erro ao carregar os dados.</div>;
 
   return (
-    <div className="p-8 space-y-8 bg-gray-100 min-h-screen">
+    <div className="p-20 space-y-8 bg-gray-100 min-h-screen">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {dashboardStats.map((stat) => (
           <Card key={stat.label} className="bg-white border-none">

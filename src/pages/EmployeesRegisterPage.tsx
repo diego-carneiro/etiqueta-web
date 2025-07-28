@@ -1,81 +1,148 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useCreateEmployee } from "@/api/hooks/useEmployee";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function EmployeeRegister() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    taxId: "",
+    serviceCenterId: "",
+  });
+
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const { mutate, isPending } = useCreateEmployee();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    mutate(formData, {
+      onSuccess: () => {
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          taxId: "",
+          serviceCenterId: "",
+        });
+        navigate("/app/employees");
+      },
+      onError: () => {
+        setShowErrorDialog(true);
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          taxId: "",
+          serviceCenterId: "",
+        });
+      },
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 px-8 mt-16">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <div className="flex flex-col space-y-1.5">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 max-w-100 mx-auto mt-30"
+      >
+        <div className="flex flex-col space-y-1">
           <label className="text-sm font-medium text-gray-700">Nome</label>
           <Input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
             placeholder="Digite um nome"
             className="bg-white border-none shadow-sm"
           />
         </div>
 
-        <div className="flex flex-col space-y-1.5">
+        <div className="flex flex-col space-y-1">
           <label className="text-sm font-medium text-gray-700">Email</label>
           <Input
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
             placeholder="exemplo@exemplo.com"
             className="bg-white border-none shadow-sm"
           />
         </div>
 
-        <div className="flex flex-col space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Celular</label>
-          <Input
-            placeholder="149912125432"
-            className="bg-white border-none shadow-sm"
-          />
-        </div>
-
-        <div className="flex flex-col space-y-1.5">
+        <div className="flex flex-col space-y-1">
           <label className="text-sm font-medium text-gray-700">Senha</label>
           <Input
+            name="password"
             type="password"
+            value={formData.password}
+            onChange={handleChange}
             placeholder="Sua senha"
             className="bg-white border-none shadow-sm"
           />
         </div>
 
-        <div className="flex flex-col space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">
-            Confirmar Senha
-          </label>
+        <div className="flex flex-col space-y-1 mt-20">
+          <label className="text-sm font-medium text-gray-700">CPF</label>
           <Input
-            type="password"
-            placeholder="Confirmar senha"
+            name="taxId"
+            value={formData.taxId}
+            onChange={handleChange}
+            placeholder="000.000.000-00"
             className="bg-white border-none shadow-sm"
           />
         </div>
 
-        <div className="flex flex-col space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Loja</label>
-          <Select>
-            <SelectTrigger className="bg-white border-none shadow-sm">
-              <SelectValue placeholder="Selecione uma loja" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-none">
-              <SelectItem value="loja-a">Loja A</SelectItem>
-              <SelectItem value="loja-b">Loja B</SelectItem>
-              <SelectItem value="loja-c">Loja C</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col space-y-1">
+          <label className="text-sm font-medium text-gray-700">
+            Código da Loja
+          </label>
+          <Input
+            name="serviceCenterId"
+            value={formData.serviceCenterId}
+            onChange={handleChange}
+            placeholder="Digite o código da loja"
+            className="bg-white border-none shadow-sm"
+          />
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto mt-6">
-        <Button className="bg-yellow-400 text-black hover:bg-yellow-500">
-          Cadastrar
-        </Button>
-      </div>
+        <div className="mt-6">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="bg-yellow-400 text-white hover:bg-yellow-500 w-full"
+          >
+            {isPending ? "Cadastrando..." : "Cadastrar"}
+          </Button>
+        </div>
+      </form>
+
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Erro ao cadastrar funcionário</DialogTitle>
+            <p>
+              Houve um problema ao tentar cadastrar o funcionário. Tente
+              novamente.
+            </p>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

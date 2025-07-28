@@ -1,12 +1,5 @@
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -55,26 +48,12 @@ export default function LogsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="p-8 space-y-8 bg-gray-100 min-h-screen">
-      <div className="p-4 rounded-lg flex flex-wrap gap-4">
+    <div className="p-20 space-y-8 bg-gray-100 min-h-screen">
+      <div className="rounded-lg flex flex-wrap gap-4">
         <Input
           placeholder="Nome do Funcionário"
           className="max-w-[200px] bg-white border-none"
         />
-        <Input
-          placeholder="ID"
-          className="max-w-[100px] bg-white border-none"
-        />
-        <Select>
-          <SelectTrigger className="w-[200px] bg-white border-none">
-            <SelectValue placeholder="Selecione um campo" />
-          </SelectTrigger>
-          <SelectContent className="bg-white">
-            <SelectItem value="campo1">Data da última troca</SelectItem>
-            <SelectItem value="campo2">Email</SelectItem>
-            <SelectItem value="campo3">Telefone</SelectItem>
-          </SelectContent>
-        </Select>
         <Button className="bg-yellow-500 text-white hover:bg-yellow-600">
           Filtrar
         </Button>
