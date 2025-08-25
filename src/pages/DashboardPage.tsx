@@ -1,159 +1,167 @@
-import React, { useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, X } from "lucide-react";
+import { useVehicleByPlate } from "@/api/hooks/useCars";
+import { useCustomerById } from "@/api/hooks/useCustomer";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
-import { useCustomer } from "@/api/hooks/useCustomer";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-export interface Customer {
-  id: string | number;
-  name: string;
-  approvalStatus: 0 | 1;
-  additionalSlots?: number | null;
-  mainCar?: string | null;
-  plate?: string | null;
-}
+export default function UserDashboard() {
+  const navigate = useNavigate();
+  const [licensePlate, setLicensePlate] = useState("");
+  const [searchPlate, setSearchPlate] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showError, setShowError] = useState(false);
 
-export default function DashboardPage() {
-  const { data, isLoading, error } = useCustomer();
+  const {
+    data: vehicleData,
+    isLoading,
+    isError,
+    refetch,
+  } = useVehicleByPlate(searchPlate);
 
-  const customers = useMemo(() => data?.data ?? [], [data]);
+  const { data: customerData } = useCustomerById(customerId ?? "");
 
-  const { verifiedCount, pendingCount, slotsCount } = useMemo(() => {
-    let verified = 0;
-    let pending = 0;
-    let slots = 0;
-    for (const c of customers) {
-      if (c.approvalStatus === 1) verified += 1;
-      else if (c.approvalStatus === 0) pending += 1;
-      slots += typeof c.additionalSlots === "number" ? c.additionalSlots : 0;
+  useEffect(() => {
+    if (vehicleData && "customerId" in vehicleData) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setCustomerId((vehicleData as any).customerId);
     }
-    return {
-      verifiedCount: verified,
-      pendingCount: pending,
-      slotsCount: slots,
-    };
-  }, [customers]);
+  }, [vehicleData]);
 
-  const dashboardStats = [
-    {
-      label: "Clientes Verificados",
-      value: verifiedCount,
-      color: "text-green-600",
-      icon: "🟢",
-    },
-    {
-      label: "Clientes Pendentes",
-      value: pendingCount,
-      color: "text-orange-600",
-      icon: "🟠",
-    },
-    {
-      label: "Slots Adicionais",
-      value: slotsCount,
-      color: "text-blue-600",
-      icon: "➕",
-    },
-  ];
+  const handleSearch = async () => {
+    if (!licensePlate.trim()) return;
+    setShowError(false);
+    setShowModal(true);
 
-  if (isLoading) return <div className="p-8">Carregando...</div>;
-  if (error)
-    return <div className="p-8 text-red-500">Erro ao carregar os dados.</div>;
+    setSearchPlate(licensePlate);
+    const result = await refetch();
+
+    if (result.error || isError) {
+      setShowError(true);
+    }
+    setShowModal(false);
+  };
+
+  const handleMoreDetails = () => {
+    if (vehicleData) {
+      navigate("/user-infos", {
+        state: {
+          vehicle: vehicleData,
+          owner: customerData?.name ?? "-",
+        },
+      });
+    }
+  };
 
   return (
-    <div className="p-20 space-y-8 bg-gray-100 min-h-screen">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {dashboardStats.map((stat) => (
-          <Card key={stat.label} className="bg-white border-none">
-            <CardContent className="flex items-center gap-3 p-4">
-              <span className="text-2xl">{stat.icon}</span>
-              <div>
-                <p className={`text-lg font-bold ${stat.color}`}>
-                  {stat.value}
-                </p>
-                <p className="text-sm text-gray-500">{stat.label}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-6">
+      <div className="w-full max-w-md">
+        <div className="flex items-center bg-white rounded-xl px-3 py-2 mb-4 shadow">
+          <Search size={18} className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Busca por placa"
+            value={licensePlate}
+            onChange={(e) => setLicensePlate(e.target.value)}
+            className="flex-1 ml-2 bg-transparent text-base text-gray-800 outline-none"
+            autoCapitalize="characters"
+          />
+        </div>
+
+        <button
+          onClick={handleSearch}
+          className="w-full bg-yellow-400 px-6 py-3 rounded-lg mt-2 text-white font-semibold"
+        >
+          Pesquisar
+        </button>
+
+        {vehicleData && customerData && !isLoading && !showError && (
+          <div className="bg-white rounded-xl p-4 mt-6 shadow space-y-1 text-gray-800">
+            <p>
+              <span className="font-bold">Proprietário:</span>{" "}
+              {customerData.name || "-"}
+            </p>
+            <p>
+              <span className="font-bold">Placa:</span>{" "}
+              {vehicleData.licensePlate || "-"}
+            </p>
+            <p>
+              <span className="font-bold">Modelo:</span> {vehicleData.brand}{" "}
+              {vehicleData.model}
+            </p>
+            <p>
+              <span className="font-bold">Ano:</span> {vehicleData.year || "-"}
+            </p>
+            <p>
+              <span className="font-bold">KM:</span>{" "}
+              {vehicleData.currentMileage || "-"}
+            </p>
+            <button
+              onClick={handleMoreDetails}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
+            >
+              Mais detalhes
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 rounded-lg flex flex-wrap gap-4">
-        <Input
-          placeholder="Placa"
-          className="max-w-[200px] bg-white border-none"
-        />
-        <Input
-          placeholder="ID"
-          className="max-w-[200px] bg-white border-none"
-        />
-        <Select>
-          <SelectTrigger className="w-[200px] bg-white border-none">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="verificado">Verificado</SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button>Filtrar</Button>
-      </div>
+      <Dialog open={showModal} onOpenChange={(open) => setShowModal(open)}>
+        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:max-w-md bg-white border-none shadow-lg rounded-xl z-50">
+          <button
+            onClick={() => setShowModal(false)}
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+          >
+            <X size={18} />
+          </button>
 
-      <div className="bg-white rounded-lg p-4">
-        <Table className="border-separate border-spacing-0">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Carro Principal</TableHead>
-              <TableHead>Placa</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Revisar</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customers.map((client: Customer) => (
-              <TableRow key={client.id}>
-                <TableCell>{client.name}</TableCell>
-                <TableCell>{client.mainCar ?? ""}</TableCell>
-                <TableCell>{client.plate ?? ""}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={
-                      client.approvalStatus === 1
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "bg-orange-50 text-orange-700 border-orange-200"
-                    }
-                  >
-                    {client.approvalStatus === 1 ? "Verificado" : "Pendente"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-800">
+              Buscando veículo...
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="mt-4 text-gray-600 text-sm flex items-center justify-center">
+            <span className="animate-pulse">Carregando...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showError} onOpenChange={(open) => setShowError(open)}>
+        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:max-w-md bg-white border-none shadow-lg rounded-xl z-50">
+          <button
+            onClick={() => setShowError(false)}
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+          >
+            <X size={18} />
+          </button>
+
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-red-600">
+              Erro ao buscar veículo
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="mt-4 text-gray-600 text-sm text-center">
+            Erro ao buscar veículo pela placa.
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => setShowError(false)}
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Fechar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

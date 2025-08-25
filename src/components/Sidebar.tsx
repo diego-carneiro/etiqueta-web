@@ -10,7 +10,7 @@ export default function Sidebar() {
     { label: "Dashboard", icon: Home, path: "/app/dashboard" },
     { label: "Pagamentos", icon: CreditCard, path: "/app/payments" },
     { label: "Funcionários", icon: Users, path: "/app/employees" },
-    { label: "Logs", icon: Settings, path: "/app/logs" },
+    { label: "Histórico", icon: Settings, path: "/app/logs" },
   ];
 
   const handleLogout = () => {
