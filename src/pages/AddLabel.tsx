@@ -69,7 +69,7 @@ export default function AddLabel() {
         <Card className="w-full shadow-none border-none bg-white">
           <CardContent className="p-2 space-y-6">
             <h1 className="text-2xl font-bold text-gray-800 text-center">
-              Adicionar Novo Item
+              Adicionar novo item
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
