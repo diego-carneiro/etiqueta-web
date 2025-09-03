@@ -1,4 +1,4 @@
-import { Home, CreditCard, Users, Settings, LogOut } from "lucide-react";
+import { Home, Users, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 
@@ -7,8 +7,8 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const menuItems = [
-    { label: "Dashboard", icon: Home, path: "/app/dashboard" },
-    { label: "Pagamentos", icon: CreditCard, path: "/app/payments" },
+    { label: "Painel", icon: Home, path: "/app/dashboard" },
+    // { label: "Pagamentos", icon: CreditCard, path: "/app/payments" },
     { label: "Funcionários", icon: Users, path: "/app/employees" },
     { label: "Histórico", icon: Settings, path: "/app/logs" },
   ];
@@ -20,7 +20,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 h-screen bg-white p-4 flex flex-col">
-      <h2 className="text-sm text-gray-500 font-semibold mb-4 mt-20">Menu</h2>
+      <h2 className="text-sm text-gray-500 font-semibold mb-4 mt-4">Menu</h2>
 
       <nav className="flex flex-col gap-2">
         {menuItems.map(({ label, icon: Icon, path }) => {

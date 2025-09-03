@@ -13,18 +13,14 @@ import {
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [licensePlate, setLicensePlate] = useState("");
-  const [searchPlate, setSearchPlate] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
+
+  const [showLoading, setShowLoading] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [validationError, setValidationError] = useState("");
 
-  const {
-    data: vehicleData,
-    isLoading,
-    isError,
-    refetch,
-  } = useVehicleByPlate(searchPlate);
-
+  const { data: vehicleData, refetch } = useVehicleByPlate(licensePlate);
   const { data: customerData } = useCustomerById(customerId ?? "");
 
   useEffect(() => {
@@ -34,23 +30,51 @@ export default function UserDashboard() {
     }
   }, [vehicleData]);
 
+  const validatePlate = (plate: string): boolean => {
+    const regexOld = /^[A-Z]{3}[0-9]{4}$/; // ABC1234
+    const regexMercosul = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/; // ABC1D23
+    return regexOld.test(plate) || regexMercosul.test(plate);
+  };
+
   const handleSearch = async () => {
     if (!licensePlate.trim()) return;
+
+    if (!validatePlate(licensePlate)) {
+      setValidationError(
+        "Formato de placa inválido. Use ABC1234 ou ABC1D23 (Mercosul)."
+      );
+      return;
+    }
+
+    setValidationError("");
     setShowError(false);
-    setShowModal(true);
+    setShowSuccess(false);
+    setShowLoading(true);
 
-    setSearchPlate(licensePlate);
-    const result = await refetch();
+    try {
+      const result = await refetch();
+      setShowLoading(false);
 
-    if (result.error || isError) {
+      if (result.error || !result.data) {
+        setShowError(true);
+      } else {
+        setShowSuccess(true);
+      }
+    } catch {
+      setShowLoading(false);
       setShowError(true);
     }
-    setShowModal(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
   };
 
   const handleMoreDetails = () => {
     if (vehicleData) {
-      navigate("/user-infos", {
+      navigate("/app/user-infos", {
         state: {
           vehicle: vehicleData,
           owner: customerData?.name ?? "-",
@@ -62,17 +86,21 @@ export default function UserDashboard() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-6">
       <div className="w-full max-w-md">
-        <div className="flex items-center bg-white rounded-xl px-3 py-2 mb-4 shadow">
+        <div className="flex items-center bg-white rounded-xl px-3 py-2 mb-2 shadow">
           <Search size={18} className="text-gray-400" />
           <input
             type="text"
             placeholder="Busca por placa"
             value={licensePlate}
-            onChange={(e) => setLicensePlate(e.target.value)}
+            onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
+            onKeyDown={handleKeyDown}
             className="flex-1 ml-2 bg-transparent text-base text-gray-800 outline-none"
-            autoCapitalize="characters"
           />
         </div>
+
+        {validationError && (
+          <p className="text-red-500 text-sm mb-2">{validationError}</p>
+        )}
 
         <button
           onClick={handleSearch}
@@ -80,78 +108,38 @@ export default function UserDashboard() {
         >
           Pesquisar
         </button>
-
-        {vehicleData && customerData && !isLoading && !showError && (
-          <div className="bg-white rounded-xl p-4 mt-6 shadow space-y-1 text-gray-800">
-            <p>
-              <span className="font-bold">Proprietário:</span>{" "}
-              {customerData.name || "-"}
-            </p>
-            <p>
-              <span className="font-bold">Placa:</span>{" "}
-              {vehicleData.licensePlate || "-"}
-            </p>
-            <p>
-              <span className="font-bold">Modelo:</span> {vehicleData.brand}{" "}
-              {vehicleData.model}
-            </p>
-            <p>
-              <span className="font-bold">Ano:</span> {vehicleData.year || "-"}
-            </p>
-            <p>
-              <span className="font-bold">KM:</span>{" "}
-              {vehicleData.currentMileage || "-"}
-            </p>
-            <button
-              onClick={handleMoreDetails}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
-            >
-              Mais detalhes
-            </button>
-          </div>
-        )}
       </div>
 
-      <Dialog open={showModal} onOpenChange={(open) => setShowModal(open)}>
-        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:max-w-md bg-white border-none shadow-lg rounded-xl z-50">
-          <button
-            onClick={() => setShowModal(false)}
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-          >
-            <X size={18} />
-          </button>
-
+      <Dialog open={showLoading} onOpenChange={setShowLoading}>
+        <DialogContent className="sm:max-w-md bg-white border-none shadow-lg rounded-xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-800">
               Buscando veículo...
             </DialogTitle>
           </DialogHeader>
-
           <div className="mt-4 text-gray-600 text-sm flex items-center justify-center">
             <span className="animate-pulse">Carregando...</span>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showError} onOpenChange={(open) => setShowError(open)}>
-        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:max-w-md bg-white border-none shadow-lg rounded-xl z-50">
+      <Dialog open={showError} onOpenChange={setShowError}>
+        <DialogContent className="sm:max-w-md bg-white border-none shadow-lg rounded-xl">
           <button
             onClick={() => setShowError(false)}
             className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
           >
             <X size={18} />
           </button>
-
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-red-600">
               Erro ao buscar veículo
             </DialogTitle>
           </DialogHeader>
-
           <div className="mt-4 text-gray-600 text-sm text-center">
-            Erro ao buscar veículo pela placa.
+            Erro ao buscar veículo pela placa. Verifique se a placa está
+            correta.
           </div>
-
           <div className="mt-6 flex justify-center">
             <button
               onClick={() => setShowError(false)}
@@ -160,6 +148,54 @@ export default function UserDashboard() {
               Fechar
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent className="sm:max-w-md bg-white border-none shadow-lg rounded-xl">
+          <button
+            onClick={() => setShowSuccess(false)}
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+          >
+            <X size={18} />
+          </button>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-green-600 text-center mb-6">
+              Veículo encontrado
+            </DialogTitle>
+          </DialogHeader>
+          {vehicleData && customerData && (
+            <div className="mt-4 text-gray-800 space-y-2">
+              <p>
+                <span className="font-bold">Proprietário:</span>{" "}
+                {customerData.name || "-"}
+              </p>
+              <p>
+                <span className="font-bold">Placa:</span>{" "}
+                {vehicleData.licensePlate || "-"}
+              </p>
+              <p>
+                <span className="font-bold">Modelo:</span> {vehicleData.brand}{" "}
+                {vehicleData.model}
+              </p>
+              <p>
+                <span className="font-bold">Ano:</span>{" "}
+                {vehicleData.year || "-"}
+              </p>
+              <p>
+                <span className="font-bold">Km da última troca:</span>{" "}
+                {vehicleData.currentMileage || "-"}Km
+              </p>
+              <div className="flex justify-center">
+                <button
+                  onClick={handleMoreDetails}
+                  className="mt-8 bg-blue-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Mais detalhes
+                </button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -17,7 +17,6 @@ export const createEmployee = async (
 
 export const getEmployees = async (): Promise<PaginatedEmployeeResponse> => {
   const response = await api.get("/employees");
-  console.log(response.data);
   return response.data;
 };
 

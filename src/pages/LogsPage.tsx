@@ -25,14 +25,22 @@ export default function LogsPage() {
     error,
   } = useLabelsHistory();
 
+  // Ordenar pelo createdAt decrescente
+  const sortedData = useMemo(() => {
+    return [...historyData].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [historyData]);
+
   const filteredData = useMemo(() => {
-    if (!employeeIdFilter.trim()) return historyData;
-    return historyData.filter(
+    if (!employeeIdFilter.trim()) return sortedData;
+    return sortedData.filter(
       (log) =>
         log.employeeId &&
         log.employeeId.toLowerCase().includes(employeeIdFilter.toLowerCase())
     );
-  }, [historyData, employeeIdFilter]);
+  }, [sortedData, employeeIdFilter]);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -143,8 +151,8 @@ export default function LogsPage() {
           <Table className="border-separate border-spacing-0">
             <TableHeader>
               <TableRow>
-                <TableHead>Quilometragem</TableHead>
-                <TableHead>Itens Aplicados</TableHead>
+                <TableHead>Nome do Funcionário</TableHead>
+                <TableHead>Placa do Veículo</TableHead>
                 <TableHead>Data e Hora</TableHead>
               </TableRow>
             </TableHeader>
@@ -163,18 +171,8 @@ export default function LogsPage() {
               ) : (
                 paginatedData.map((log, index) => (
                   <TableRow key={`${log.employeeId}-${log.vehicleId}-${index}`}>
-                    <TableCell>{log.mileage} km</TableCell>
-                    <TableCell>
-                      {log.itemsApplied.length} item(s)
-                      {log.itemsApplied.length > 0 && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {log.itemsApplied[0].brand}{" "}
-                          {log.itemsApplied[0].specification}
-                          {log.itemsApplied.length > 1 &&
-                            ` +${log.itemsApplied.length - 1} mais`}
-                        </div>
-                      )}
-                    </TableCell>
+                    <TableCell>{log.employeeName}</TableCell>
+                    <TableCell>{log.vehicleLicensePlate}</TableCell>
                     <TableCell>{formatDateTime(log.createdAt)}</TableCell>
                   </TableRow>
                 ))

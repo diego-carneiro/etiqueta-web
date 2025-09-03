@@ -38,7 +38,9 @@ export interface ItemApplied {
 
 export interface LabelsHistoryRecord {
   vehicleId: string;
+  vehicleLicensePlate: string;
   employeeId: string;
+  employeeName: string;
   createdAt: string;
   mileage: number;
   itemsApplied: ItemApplied[];

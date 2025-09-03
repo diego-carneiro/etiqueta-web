@@ -16,6 +16,8 @@ import EmployeesPage from "@/pages/EmployeesPage";
 import EmployeeRegisterPage from "@/pages/EmployeesRegisterPage";
 import LogsPage from "@/pages/LogsPage";
 import AuditLogs from "@/pages/AuditLogs";
+import UserInfos from "@/pages/UserInfos";
+import AddLabel from "@/pages/AddLabel";
 
 export const Router = createBrowserRouter([
   {
@@ -53,6 +55,14 @@ export const Router = createBrowserRouter([
           {
             path: "dashboard",
             element: <DashboardPage />,
+          },
+          {
+            path: "user-infos",
+            element: <UserInfos />,
+          },
+          {
+            path: "add-label",
+            element: <AddLabel />,
           },
           {
             path: "payments",
